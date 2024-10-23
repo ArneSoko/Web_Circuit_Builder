@@ -1,70 +1,30 @@
-# Getting Started with Create React App
+# Web Circuit Builder
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The purpose of this project is to create a working web-based circuit planner. I wasn't able to find any as of October 2024.
 
-## Available Scripts
+## Project scope
 
-In the project directory, you can run:
+At the moment (Oct 2024) the scope of my project is only a stripboard circuit planner. 
 
-### `yarn start`
+## Usage
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Ensure you have `yarn` or `npm` installed, download the files and run the following command:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### ```yarn start```
 
-### `yarn test`
+## Future plans
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+As of the current build (Oct 23, 2024) I'm planning the following additions:
 
-### `yarn build`
+    1. Spawn and despawn components
+    2. Create different styles of component (resistors, capacitors, etc)
+    3. Add a way to cut the stripboard to sever connections
+    4. Add integrated circuit chips as components
+    5. Customized labeling of components
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Currently unplanned but potential additions include:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    1. Changing board type from stripboard to project/perforated board and breadboard
+    2. Circuit logic (to test for short-circuits)
+    3. PCB designing capability
+    4. File exports
