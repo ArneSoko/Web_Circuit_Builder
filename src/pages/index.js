@@ -1,13 +1,13 @@
 import { Slot, Board } from '../components/board.js';
-import { Component } from '../components/comp.js';
-import { useEffect, useState, useRef } from 'react';
+import { Component, IntCirc } from '../components/comp.js';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import LineTo from 'react-lineto';
 import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import './index-styles.css';
 
 function SlotDroppable(props){
-    const {isOver, setNodeRef} = useDroppable({
+    const {setNodeRef} = useDroppable({
         id: props.id,
     });
     return(
@@ -39,40 +39,75 @@ function Index(){
     const [board, setBoard] = useState(new Board(cols, rows));
     const boardRef = useRef(0);
 
+    
+
     //Drag-and-drop logic
     const [parent, setParent] = useState(null);
-    
+    const [slots, setSlots] = useState({});
+    const [comps, setComps] = useState({});
+
     function handleDragEnd(event) {
-        const {over} = event;
-        console.log(over);
-        setParent(over ? over.id : null);
-    }
-    
-    const draggable = (
-        <CompDraggable id='1' className='wire_1' />
-    )
+        const {over, active} = event;
+        if(over){
+            let ind = parseInt(over.id.substr(1));
+            let newSlots = slots;
+            newSlots[ind] = active.id;
+            setSlots((prev) => ({
+                ...prev,
+                [ind]: active.id
+            }));
+            //TODO: update comps with backwards references.
 
-    //Component position
-    const [x1, setX1] = useState(100);
-    const [x2, setX2] = useState(200);
-    const [y1, setY1] = useState(10);
-    const [y2, setY2] = useState(20);
+            let compInd= parseInt(active.id.substr(1));
+            let prevComp = comps[compInd];
+            setComps((prev) => ({
+                ...prev,
+                [compInd] : active.id[0] === 'i' ? new Component(ind,prevComp.out) : new Component(prevComp.in, ind)
+            }));
+        }
+        else{
+            console.log('null');
+        }
+    };
     
-
-    var comps = [];
-    comps.push(new Component(x1, x2, y1, y2));
+    const draggableOne = (id) => (
+        <CompDraggable id={id} className='wire_1' />
+    );
+    const draggableTwo = (id) => (
+        <CompDraggable id={id} className='wire_2' />
+    );
+    
+    const dragRender = (id) => (
+        id[0] === 'i' ? draggableOne(id) : draggableTwo(id)
+    );
 
     const resetBoard = () => {
         console.log(boardRef.current.clientHeight / rows);
-    }
+    };
 
-    useEffect(() => {
-        setRowHeight(boardRef.current.clientHeight / rows)
+    //Create new components, append them to the components list, and render their terminals
+    function newComp(){
+        setComps((prev) => ({
+            ...prev,
+            [Object.keys(prev).length] : new Component()
+    }));
+        //TODO: render new terminals
+    };
+
+    useLayoutEffect(() => {
+        setSlots({});
+    }, []);
+    useEffect(()=>{
+        setRowHeight(boardRef.current.clientHeight / rows);
     });
 
-    
+    //Reading the slots on update, for debugging
+    useEffect(()=>{
+        console.log(slots);
+        console.log(comps)
+    }, [slots, comps]);
 
-    
+
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
@@ -81,7 +116,8 @@ function Index(){
                 <input type='number' id='row_in' name='row_in' defaultValue={rows} onChange={e => setRows(parseInt(e.target.value))} min={1} max={40}/>
                 <input type='button' value="Set Board" onClick={e => resetBoard()}/><br/>
                 <label htmlFor='col_in'>Slots per row: </label>
-                <input type='number' id='col_in' name='col_in' defaultValue={cols} onChange={e => setCols(parseInt(e.target.value))} min={1} max={40}/>
+                <input type='number' id='col_in' name='col_in' defaultValue={cols} onChange={e => setCols(parseInt(e.target.value))} min={1} max={40}/><br/>
+                <input type='button' value='Add component' onClick={e => newComp()}/>
                 
             </div>
             <div className='brd' ref={boardRef}>
@@ -89,13 +125,21 @@ function Index(){
                     <div className='row' key={rindex} id={'r'+rindex} style={{height: `${rowHeight}px`}}>
                         {row.map((slot, index) => (
                             <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
-                                {parent === 's'+(index + 1 + (rindex * cols)) ? draggable : null}
+                                {/*parent === 's'+(index + 1 + (rindex * cols)) ? draggableOne('1') : null*/}
+                                {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
                             </SlotDroppable>
                         ))}
                     </div>
                 ))}
             </div>
-            {parent === null ? draggable : null}
+                <div className='homebase'>
+                {Object.keys(comps).map((id) => (
+                    <div key={id}>
+                        {comps[id].in === null ? draggableOne('i' + id) : null}
+                        <br/> 
+                        {comps[id].out === null ? draggableTwo('o' + id) : null}
+                    </div>))}
+                </div>
         </DndContext>
     );
 }
