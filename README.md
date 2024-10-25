@@ -8,9 +8,12 @@ At the moment (Oct 2024) the scope of my project is only a stripboard circuit pl
 
 ## Usage
 
-Ensure you have `yarn` or `npm` installed, download the files and run the following command:
+Ensure you have `yarn` or `npm` installed, download the files and run the following commands:
 
-### ```yarn start```
+### ```
+$ yarn
+$ yarn start
+```
 
 ## Future plans
 
