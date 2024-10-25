@@ -49,16 +49,19 @@ function Index(){
     function handleDragEnd(event) {
         const {over, active} = event;
         if(over){
-            let ind = parseInt(over.id.substr(1));
+            const ind = parseInt(over.id.substr(1));
             let newSlots = slots;
             newSlots[ind] = active.id;
+            const compInd= parseInt(active.id.substr(1));
+            const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
+            //Set new slot, remove old slot
             setSlots((prev) => ({
                 ...prev,
-                [ind]: active.id
+                [ind]: active.id,
+                [oldSlot]: null
             }));
-            //TODO: update comps with backwards references.
 
-            let compInd= parseInt(active.id.substr(1));
+            //Backwards reference, for removing from old space
             let prevComp = comps[compInd];
             setComps((prev) => ({
                 ...prev,
