@@ -1,7 +1,7 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import LineTo from 'react-lineto';
+import LineTo, { Line } from 'react-lineto';
 import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import './index-styles.css';
@@ -42,24 +42,31 @@ function Index(){
     
 
     //Drag-and-drop logic
-    const [parent, setParent] = useState(null);
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
 
+    //Dragging terminal logic
     function handleDragEnd(event) {
         const {over, active} = event;
+        
+        //Component is always in event as active. Storing some important values as const
+        const compInd= parseInt(active.id.substr(1));
+        const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
+
+        //Drop into slot
         if(over){
+            //Annoying to write, keep it as a const
             const ind = parseInt(over.id.substr(1));
-            let newSlots = slots;
-            newSlots[ind] = active.id;
-            const compInd= parseInt(active.id.substr(1));
-            const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
-            //Set new slot, remove old slot
+
+            //Set new slot
             setSlots((prev) => ({
                 ...prev,
                 [ind]: active.id,
-                [oldSlot]: null
+                //Check that oldSlot is not null and is not the same slot, then set the slut to null
+                ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
             }));
+
+            //If previously in a slot, empty old slot
 
             //Backwards reference, for removing from old space
             let prevComp = comps[compInd];
@@ -68,6 +75,8 @@ function Index(){
                 [compInd] : active.id[0] === 'i' ? new Component(ind,prevComp.out) : new Component(prevComp.in, ind)
             }));
         }
+
+        //If no slot, reset terminal to homebase
         else{
             console.log('null');
         }
@@ -84,7 +93,9 @@ function Index(){
         id[0] === 'i' ? draggableOne(id) : draggableTwo(id)
     );
 
+    //Set a new board size
     const resetBoard = () => {
+        //TODO
         console.log(boardRef.current.clientHeight / rows);
     };
 
@@ -92,9 +103,10 @@ function Index(){
     function newComp(){
         setComps((prev) => ({
             ...prev,
-            [Object.keys(prev).length] : new Component()
-    }));
-        //TODO: render new terminals
+            //In case one component is deleted, just keep tracking elements as the highest number + 1
+            [Math.max(Object.keys(prev))+1] : new Component()
+        }));
+        
     };
 
     useLayoutEffect(() => {
@@ -112,7 +124,7 @@ function Index(){
 
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragMove={e => console.log(e)} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -137,7 +149,7 @@ function Index(){
             </div>
                 <div className='homebase'>
                 {Object.keys(comps).map((id) => (
-                    <div key={id}>
+                    <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
