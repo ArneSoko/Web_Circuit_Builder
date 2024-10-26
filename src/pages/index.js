@@ -18,17 +18,20 @@ function SlotDroppable(props){
 }
 
 function CompDraggable(props) {
-  const {attributes, listeners, setNodeRef, transform} = useDraggable({
-    id: props.id,
-  });
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    position: 'absolute'
-  };
-  
-  return (
-    <div className={props.className} ref={setNodeRef} style={style} {...listeners} {...attributes}></div>
-  );
+    const {attributes, listeners, setNodeRef, transform} = useDraggable({
+        id: props.id,
+    });
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        position: 'absolute'
+    };
+    
+    return (
+        <div className={props.className} ref={(node) => {
+            setNodeRef(node);
+            props.onSetRef(props.id, node); // The Index function also needs the ref for drawing lines
+        }} style={style} {...listeners} {...attributes}></div>
+    );
 }
 
 function Index(){
@@ -44,6 +47,7 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
+    const compNodes = useRef({}); //Avoid rerenders
 
     //Dragging terminal logic
     function handleDragEnd(event) {
@@ -81,14 +85,24 @@ function Index(){
             console.log('null');
         }
     };
+
+    const handleSetRef = (id, node) => {
+        let rect = null;
+        if(node){
+            rect = node.getBoundingClientRect()
+        }
+        compNodes.current[id] = rect;
+        console.log(Object.keys(compNodes.current));
+        console.log(compNodes.current[id]);
+    };
     
     const draggableOne = (id) => (
-        <CompDraggable id={id} className='wire_1' />
+        <CompDraggable id={id} className='wire_1' onSetRef={handleSetRef}/>
     );
     const draggableTwo = (id) => (
-        <CompDraggable id={id} className='wire_2' />
+        <CompDraggable id={id} className='wire_2' onSetRef={handleSetRef}/>
     );
-    
+    //Special const function for rendering on droppables with minimal writing.
     const dragRender = (id) => (
         id[0] === 'i' ? draggableOne(id) : draggableTwo(id)
     );
@@ -101,12 +115,12 @@ function Index(){
 
     //Create new components, append them to the components list, and render their terminals
     function newComp(){
+        const intArr = Object.keys(comps).map((id) => (parseInt(id)));
         setComps((prev) => ({
             ...prev,
             //In case one component is deleted, just keep tracking elements as the highest number + 1
-            [Math.max(Object.keys(prev))+1] : new Component()
+            [intArr.length ? Math.max(...intArr)+1 : 0] : new Component()
         }));
-        
     };
 
     useLayoutEffect(() => {
@@ -124,7 +138,7 @@ function Index(){
 
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragMove={e => console.log(e)} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -151,6 +165,7 @@ function Index(){
                 {Object.keys(comps).map((id) => (
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
+                        {compNodes.current['i'+id] ? <p>ssss</p> : <p>{Object.keys(compNodes.current).toString()}</p>}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
                     </div>))}
