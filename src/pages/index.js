@@ -1,7 +1,6 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
-import { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import LineTo, { Line } from 'react-lineto';
+import { useEffect, useState, useRef, useLayoutEffect, Children } from 'react';
 import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import './index-styles.css';
@@ -20,6 +19,7 @@ function SlotDroppable(props){
 function CompDraggable(props) {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
         id: props.id,
+
     });
     const style = {
         transform: CSS.Translate.toString(transform),
@@ -47,7 +47,8 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-    const compNodes = useRef({}); //Avoid rerenders
+    const capture = useRef({}); //Avoid rerenders when acquiring ref
+    const [compNodes, setCompNodes] = useState(capture.current);
 
     //Dragging terminal logic
     function handleDragEnd(event) {
@@ -86,16 +87,18 @@ function Index(){
         }
     };
 
+    //Keeping track of refs
     const handleSetRef = (id, node) => {
-        let rect = null;
         if(node){
-            rect = node.getBoundingClientRect()
+            const rect = node.getBoundingClientRect()
+            capture.current[id] = rect;
+            console.log("capture keys: "+Object.keys(capture.current));
+            console.log('refState');
+            console.log(compNodes);
         }
-        compNodes.current[id] = rect;
-        console.log(Object.keys(compNodes.current));
-        console.log(compNodes.current[id]);
     };
     
+    //Render functions for draggables
     const draggableOne = (id) => (
         <CompDraggable id={id} className='wire_1' onSetRef={handleSetRef}/>
     );
@@ -132,10 +135,20 @@ function Index(){
 
     //Reading the slots on update, for debugging
     useEffect(()=>{
+        console.log("slots");
         console.log(slots);
-        console.log(comps)
-    }, [slots, comps]);
+    }, [slots]);
+    //Reading comps on update, for debugging
+    useEffect(()=>{
+        console.log("components");
+        console.log(comps);
+    }, [comps])
 
+    useEffect(()=>{
+        console.log("nodes");
+        console.log(compNodes);
+        
+    }, [compNodes]);
 
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
@@ -165,9 +178,10 @@ function Index(){
                 {Object.keys(comps).map((id) => (
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
-                        {compNodes.current['i'+id] ? <p>ssss</p> : <p>{Object.keys(compNodes.current).toString()}</p>}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
+                        {compNodes['i'+id] ? <p>{compNodes['i'+id].toString()}</p> : <p>{[id]}</p>}
+                        {}
                     </div>))}
                 </div>
         </DndContext>
