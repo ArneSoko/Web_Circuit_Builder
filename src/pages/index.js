@@ -34,6 +34,16 @@ function CompDraggable(props) {
     );
 }
 
+const StripCut = ({ height })=>{
+
+    return (
+        <label className='stripCut' style={{height: height}}>
+            <input type='checkbox'/>
+            <span className='stripCheck'></span>
+        </label>
+    );
+};
+
 function Index(){
     //Board settings, with default values
     const [rows, setRows] = useState(10);
@@ -164,10 +174,13 @@ function Index(){
                 {board.rows.map((row, rindex) => (
                     <div className='row' key={rindex} id={'r'+rindex} style={{height: `${rowHeight}px`}}>
                         {row.map((slot, index) => (
-                            <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
-                                {/*parent === 's'+(index + 1 + (rindex * cols)) ? draggableOne('1') : null*/}
-                                {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
-                            </SlotDroppable>
+                            <>
+                                <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
+                                    {/*parent === 's'+(index + 1 + (rindex * cols)) ? draggableOne('1') : null*/}
+                                    {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
+                                </SlotDroppable>
+                                { Object.keys(row).length !== index + 1 ? StripCut(rowHeight) : null }
+                            </>
                         ))}
                     </div>
                 ))}
