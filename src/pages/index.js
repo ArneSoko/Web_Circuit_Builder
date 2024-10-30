@@ -1,7 +1,6 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import LineTo, { Line } from 'react-lineto';
 import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import './index-styles.css';
@@ -20,6 +19,7 @@ function SlotDroppable(props){
 function CompDraggable(props) {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
         id: props.id,
+
     });
     const style = {
         transform: CSS.Translate.toString(transform),
@@ -34,6 +34,17 @@ function CompDraggable(props) {
     );
 }
 
+// Clickable DOM elements to represent cutting the copper strips, severing the row connection
+const StripCut = ({ height })=>{
+    // Using HTML and CSS to create toggleable cuts
+    return (
+        <label className='stripCut' style={{height: height}}>
+            <input type='checkbox'/>
+            <span className='stripCheck'></span>
+        </label>
+    );
+};
+
 function Index(){
     //Board settings, with default values
     const [rows, setRows] = useState(10);
@@ -47,7 +58,7 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-    const compNodes = useRef({}); //Avoid rerenders
+    const capture = useRef({}); //Avoid rerenders when acquiring ref
 
     //Dragging terminal logic
     function handleDragEnd(event) {
@@ -70,8 +81,6 @@ function Index(){
                 ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
             }));
 
-            //If previously in a slot, empty old slot
-
             //Backwards reference, for removing from old space
             let prevComp = comps[compInd];
             setComps((prev) => ({
@@ -86,16 +95,17 @@ function Index(){
         }
     };
 
+    //Keeping track of refs
     const handleSetRef = (id, node) => {
-        let rect = null;
         if(node){
-            rect = node.getBoundingClientRect()
+            const rect = node.getBoundingClientRect()
+            capture.current[id] = rect;
+            console.log("capture keys: "+Object.keys(capture.current));
+            console.log('refState');
         }
-        compNodes.current[id] = rect;
-        console.log(Object.keys(compNodes.current));
-        console.log(compNodes.current[id]);
     };
     
+    //Render functions for draggables
     const draggableOne = (id) => (
         <CompDraggable id={id} className='wire_1' onSetRef={handleSetRef}/>
     );
@@ -132,10 +142,14 @@ function Index(){
 
     //Reading the slots on update, for debugging
     useEffect(()=>{
+        console.log("slots");
         console.log(slots);
-        console.log(comps)
-    }, [slots, comps]);
-
+    }, [slots]);
+    //Reading comps on update, for debugging
+    useEffect(()=>{
+        console.log("components");
+        console.log(comps);
+    }, [comps])
 
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
@@ -153,10 +167,12 @@ function Index(){
                 {board.rows.map((row, rindex) => (
                     <div className='row' key={rindex} id={'r'+rindex} style={{height: `${rowHeight}px`}}>
                         {row.map((slot, index) => (
-                            <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
-                                {/*parent === 's'+(index + 1 + (rindex * cols)) ? draggableOne('1') : null*/}
-                                {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
-                            </SlotDroppable>
+                            <>
+                                <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
+                                    {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
+                                </SlotDroppable>
+                                { Object.keys(row).length !== index + 1 ? StripCut(rowHeight) : null }
+                            </>
                         ))}
                     </div>
                 ))}
@@ -165,9 +181,9 @@ function Index(){
                 {Object.keys(comps).map((id) => (
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
-                        {compNodes.current['i'+id] ? <p>ssss</p> : <p>{Object.keys(compNodes.current).toString()}</p>}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
+                        {}
                     </div>))}
                 </div>
         </DndContext>
