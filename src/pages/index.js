@@ -1,6 +1,6 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
-import { useEffect, useState, useRef, useLayoutEffect, Children } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
 import {CSS} from '@dnd-kit/utilities';
 import './index-styles.css';
@@ -58,7 +58,6 @@ function Index(){
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
     const capture = useRef({}); //Avoid rerenders when acquiring ref
-    const [compNodes, setCompNodes] = useState(capture.current);
 
     //Dragging terminal logic
     function handleDragEnd(event) {
@@ -102,7 +101,6 @@ function Index(){
             capture.current[id] = rect;
             console.log("capture keys: "+Object.keys(capture.current));
             console.log('refState');
-            console.log(compNodes);
         }
     };
     
@@ -152,12 +150,6 @@ function Index(){
         console.log(comps);
     }, [comps])
 
-    useEffect(()=>{
-        console.log("nodes");
-        console.log(compNodes);
-        
-    }, [compNodes]);
-
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
@@ -191,7 +183,6 @@ function Index(){
                         {comps[id].in === null ? draggableOne('i' + id) : null}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
-                        {compNodes['i'+id] ? <p>{compNodes['i'+id].toString()}</p> : <p>{[id]}</p>}
                         {}
                     </div>))}
                 </div>
