@@ -17,11 +17,11 @@ $ yarn start
 
 ## Future plans
 
-As of the current build (Oct 23, 2024) I'm planning the following additions:
+As of the initial build (Oct 23, 2024) I'm planning the following additions:
 
     1. Spawn and despawn components
     2. Create different styles of component (resistors, capacitors, etc)
-    3. Add a way to cut the stripboard to sever connections
+    ~~3. Add a way to cut the stripboard to sever connections~~
     4. Add integrated circuit chips as components
     5. Customized labeling of components
 
