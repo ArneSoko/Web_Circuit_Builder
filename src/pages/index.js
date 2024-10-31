@@ -43,8 +43,6 @@ function Index(){
                 ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
             }));
 
-            //If previously in a slot, empty old slot
-
             //Backwards reference, for removing from old space
             let prevComp = comps[compInd];
             setComps((prev) => ({
