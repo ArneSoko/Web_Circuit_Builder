@@ -1,38 +1,12 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
-import { useEffect, useState, useRef, useLayoutEffect, Children } from 'react';
-import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
-import {CSS} from '@dnd-kit/utilities';
+import { LineDraw } from '../components/linedraw.js';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { DndContext} from '@dnd-kit/core';
+import { SlotDroppable, CompDraggable } from '../components/dragndrop.js';
 import './index-styles.css';
 
-function SlotDroppable(props){
-    const {setNodeRef} = useDroppable({
-        id: props.id,
-    });
-    return(
-        <div ref={setNodeRef} style={props.style} className='slot'>
-            {props.children}
-        </div>
-    );
-}
 
-function CompDraggable(props) {
-    const {attributes, listeners, setNodeRef, transform} = useDraggable({
-        id: props.id,
-
-    });
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        position: 'absolute'
-    };
-    
-    return (
-        <div className={props.className} ref={(node) => {
-            setNodeRef(node);
-            props.onSetRef(props.id, node); // The Index function also needs the ref for drawing lines
-        }} style={style} {...listeners} {...attributes}></div>
-    );
-}
 
 function Index(){
     //Board settings, with default values
@@ -42,15 +16,13 @@ function Index(){
     const [board, setBoard] = useState(new Board(cols, rows));
     const boardRef = useRef(0);
 
-    
-
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-    const capture = useRef({}); //Avoid rerenders when acquiring ref
-    const [compNodes, setCompNodes] = useState(capture.current);
 
-    //Dragging terminal logic
+    /* ---- DRAG HANDLERS ---- */
+    
+    //Rendering and updating for slot placements
     function handleDragEnd(event) {
         const {over, active} = event;
         
@@ -87,23 +59,21 @@ function Index(){
         }
     };
 
-    //Keeping track of refs
-    const handleSetRef = (id, node) => {
-        if(node){
-            const rect = node.getBoundingClientRect()
-            capture.current[id] = rect;
-            console.log("capture keys: "+Object.keys(capture.current));
-            console.log('refState');
-            console.log(compNodes);
-        }
-    };
+    const handleDragMove = (id) => {
+        // Recalculate line position on each drag movement
+        let el = document.getElementById(id).getBoundingClientRect();
+        console.log(el)
+        //TODO: Update line
+      };
     
+    /* ---- DRAG N DROP COMPONENT RENDERING ---- */
+
     //Render functions for draggables
     const draggableOne = (id) => (
-        <CompDraggable id={id} className='wire_1' onSetRef={handleSetRef}/>
+        <CompDraggable id={id} className='wire_1' />
     );
     const draggableTwo = (id) => (
-        <CompDraggable id={id} className='wire_2' onSetRef={handleSetRef}/>
+        <CompDraggable id={id} className='wire_2' />
     );
     //Special const function for rendering on droppables with minimal writing.
     const dragRender = (id) => (
@@ -126,6 +96,8 @@ function Index(){
         }));
     };
 
+    /* ---- HOOKS ---- */
+
     useLayoutEffect(() => {
         setSlots({});
     }, []);
@@ -144,14 +116,11 @@ function Index(){
         console.log(comps);
     }, [comps])
 
-    useEffect(()=>{
-        console.log("nodes");
-        console.log(compNodes);
-        
-    }, [compNodes]);
+
+    /* ---- RENDER ---- */
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragMove={(e) => {handleDragMove(e.active.id)}} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -180,9 +149,12 @@ function Index(){
                         {comps[id].in === null ? draggableOne('i' + id) : null}
                         <br/> 
                         {comps[id].out === null ? draggableTwo('o' + id) : null}
-                        {compNodes['i'+id] ? <p>{compNodes['i'+id].toString()}</p> : <p>{[id]}</p>}
-                        {}
                     </div>))}
+                <svg>
+                    {Object.keys(comps).map((id) => (
+                        <LineDraw key={id} id={id}/>
+                    ))}
+                </svg>
                 </div>
         </DndContext>
     );
