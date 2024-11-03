@@ -69,8 +69,27 @@ function Index(){
 
         //TODO: If no slot, reset terminal to homebase
         else{
-            console.log('null');
-        }
+
+            //Only worth doing if the component was plugged into a slot
+            if(oldSlot !== null){
+
+                //Set old slot to null
+                setSlots((prev) => ({
+                    ...prev,
+                    [oldSlot] : null
+                }));
+
+                //Resetting the component terminal to null
+                
+                //Collect the old component data
+                let prevComp = comps[compInd]
+
+                //Set the relevant terminal to null
+                setComps((prev) =>({
+                    ...prev,
+                    [compInd] : active.id[0] === 'i' ? new Component(null, prevComp.out) : new Component(prevComp.in, null)
+                }));
+        }}
     };
 
     /*********************************************/
