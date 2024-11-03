@@ -6,7 +6,7 @@ function SlotDroppable(props){
         id: props.id,
     });
     return(
-        <div ref={setNodeRef} style={props.style} className='slot'>
+        <div ref={setNodeRef} style={props.style} id={props.id} className='slot'>
             {props.children}
         </div>
     );
@@ -27,5 +27,5 @@ function CompDraggable(props) {
             setNodeRef(node);
         }} style={style} {...listeners} {...attributes}></div>
     );
-}
+};
 export { SlotDroppable, CompDraggable };
