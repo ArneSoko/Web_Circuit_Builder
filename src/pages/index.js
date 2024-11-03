@@ -7,7 +7,6 @@ import { SlotDroppable, CompDraggable } from '../components/dragndrop.js';
 import './index-styles.css';
 
 
-
 function Index(){
     //Board settings, with default values
     const [rows, setRows] = useState(10);
@@ -19,7 +18,6 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-
     /* ---- DRAG HANDLERS ---- */
     
     //Rendering and updating for slot placements
@@ -51,27 +49,21 @@ function Index(){
             }));
         }
 
-        //If no slot, reset terminal to homebase
+        //TODO: If no slot, reset terminal to homebase
         else{
             console.log('null');
         }
     };
-
-    const handleDragMove = (id) => {
-        // Recalculate line position on each drag movement
-        let el = document.getElementById(id).getBoundingClientRect();
-        console.log(el)
-        //TODO: Update line
-      };
     
     /* ---- DRAG N DROP COMPONENT RENDERING ---- */
 
+
     //Render functions for draggables
     const draggableOne = (id) => (
-        <CompDraggable id={id} className='wire_1' />
+        <CompDraggable id={id} className='wire_1'/>
     );
     const draggableTwo = (id) => (
-        <CompDraggable id={id} className='wire_2' />
+        <CompDraggable id={id} className='wire_2'/>
     );
     //Special const function for rendering on droppables with minimal writing.
     const dragRender = (id) => (
@@ -118,7 +110,7 @@ function Index(){
     /* ---- RENDER ---- */
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragMove={(e) => {handleDragMove(e.active.id)}} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -146,11 +138,11 @@ function Index(){
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
                         <br/> 
-                        {comps[id].out === null ? draggableTwo('o' + id) : null}
+                        {comps[id].out === null? draggableTwo('o' + id) : null}
                     </div>))}
                 <svg>
                     {Object.keys(comps).map((id) => (
-                        <LineDraw key={id} id={id}/>
+                        <LineDraw key={id} id={id} term1={comps[id].in === null ? 'i' + id : 's' + comps[id].in} term2={comps[id].out === null ? 'o' + id : 's' + comps[id].out}/>
                     ))}
                 </svg>
                 </div>
