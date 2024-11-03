@@ -8,6 +8,17 @@ import './index-styles.css';
 
 
 
+// Clickable DOM elements to represent cutting the copper strips, severing the row connection
+const StripCut = ({ height })=>{
+    // Using HTML and CSS to create toggleable cuts
+    return (
+        <label className='stripCut' style={{height: height}}>
+            <input type='checkbox'/>
+            <span className='stripCheck'></span>
+        </label>
+    );
+};
+
 function Index(){
 
     //Board settings, with default values
@@ -139,10 +150,12 @@ function Index(){
                 {board.rows.map((row, rindex) => (
                     <div className='row' key={rindex} id={'r'+rindex} style={{height: `${rowHeight}px`}}>
                         {row.map((slot, index) => (
-                            <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
-                                {/*parent === 's'+(index + 1 + (rindex * cols)) ? draggableOne('1') : null*/}
-                                {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
-                            </SlotDroppable>
+                            <>
+                                <SlotDroppable key={index} id={'s'+(index + 1 + (rindex * cols))} style={{width: `${rowHeight-10}px`}}>
+                                    {slots[(index + 1 + (rindex * cols))] ?  dragRender(slots[(index + 1 + (rindex * cols))]) : null}
+                                </SlotDroppable>
+                                { Object.keys(row).length !== index + 1 ? StripCut(rowHeight) : null }
+                            </>
                         ))}
                     </div>
                 ))}
