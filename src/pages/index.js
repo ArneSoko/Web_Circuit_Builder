@@ -96,16 +96,9 @@ function Index(){
     /* ---- DRAG N DROP COMPONENT RENDERING ---- */
     /*********************************************/
 
-    //Render functions for draggables
-    const draggableOne = (id) => (
-        <CompDraggable id={id} className='wire_1'/>
-    );
-    const draggableTwo = (id) => (
-        <CompDraggable id={id} className='wire_2'/>
-    );
     //Special const function for rendering on droppables with minimal writing.
     const dragRender = (id) => (
-        id[0] === 'i' ? draggableOne(id) : draggableTwo(id)
+        <CompDraggable id={id} className={id[0] === 'i' ? 'wire_1' : 'wire_2'}/>
     );
 
     //Set a new board size
@@ -183,9 +176,9 @@ function Index(){
                 <div className='homebase'>
                 {Object.keys(comps).map((id) => (
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
-                        {comps[id].in === null ? draggableOne('i' + id) : null}
+                        {comps[id].in === null ? dragRender('i' + id) : null}
                         <br/> 
-                        {comps[id].out === null? draggableTwo('o' + id) : null}
+                        {comps[id].out === null? dragRender('o' + id) : null}
                     </div>))}
                 <svg>
                     {Object.keys(comps).map((id) => (
