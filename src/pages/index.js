@@ -45,10 +45,11 @@ function Index(){
         //Storing some important values as const
         const compInd= parseInt(active.id.substr(1));
         const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
-        const ind = parseInt(over.id.substr(1));
 
         //Drop into slot
         if(over){
+            //Would have put this with the rest of the const values, but over can be null
+            const ind = parseInt(over.id.substr(1));
 
             //Set new slot
             setSlots((prev) => ({
