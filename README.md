@@ -4,7 +4,7 @@ The purpose of this project is to create a working web-based circuit planner. I 
 
 ## Project scope
 
-At the moment (Oct 2024) the scope of my project is only a stripboard circuit planner. 
+At the moment (Oct 2024) the scope of this project is only a stripboard circuit planner. 
 
 ## Usage
 
@@ -31,3 +31,4 @@ Currently unplanned but potential additions include:
     2. Circuit logic (to test for short-circuits)
     3. PCB designing capability
     4. File exports
+    5. Real-time wire rendering
