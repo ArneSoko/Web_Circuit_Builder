@@ -7,7 +7,9 @@ import { SlotDroppable, CompDraggable } from '../components/dragndrop.js';
 import './index-styles.css';
 
 
+
 function Index(){
+
     //Board settings, with default values
     const [rows, setRows] = useState(10);
     const [cols, setCols] = useState(20);
@@ -18,20 +20,24 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
+
+    /***************************/
     /* ---- DRAG HANDLERS ---- */
+    /***************************/
     
     //Rendering and updating for slot placements
     function handleDragEnd(event) {
+
+        //Component is 'active', slot is 'over'. 
         const {over, active} = event;
         
-        //Component is always in event as active. Storing some important values as const
+        //Storing some important values as const
         const compInd= parseInt(active.id.substr(1));
         const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
+        const ind = parseInt(over.id.substr(1));
 
         //Drop into slot
         if(over){
-            //Annoying to write, keep it as a const
-            const ind = parseInt(over.id.substr(1));
 
             //Set new slot
             setSlots((prev) => ({
@@ -41,7 +47,7 @@ function Index(){
                 ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
             }));
 
-            //Backwards reference, for removing from old space
+            //Backwards reference, so component can be removed from old space
             let prevComp = comps[compInd];
             setComps((prev) => ({
                 ...prev,
@@ -54,9 +60,10 @@ function Index(){
             console.log('null');
         }
     };
-    
-    /* ---- DRAG N DROP COMPONENT RENDERING ---- */
 
+    /*********************************************/
+    /* ---- DRAG N DROP COMPONENT RENDERING ---- */
+    /*********************************************/
 
     //Render functions for draggables
     const draggableOne = (id) => (
@@ -86,11 +93,16 @@ function Index(){
         }));
     };
 
+    /*******************/
     /* ---- HOOKS ---- */
+    /*******************/
 
+    //Had some weird issue with slots state as an Object, force it to an Object synchronously on render
     useLayoutEffect(() => {
         setSlots({});
     }, []);
+    
+    //On any render, calculate the height of rows
     useEffect(()=>{
         setRowHeight(boardRef.current.clientHeight / rows);
     });
@@ -100,14 +112,16 @@ function Index(){
         console.log("slots");
         console.log(slots);
     }, [slots]);
+    
     //Reading comps on update, for debugging
     useEffect(()=>{
         console.log("components");
         console.log(comps);
     }, [comps])
 
-
+    /********************/
     /* ---- RENDER ---- */
+    /********************/
 
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
