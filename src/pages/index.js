@@ -1,38 +1,12 @@
 import { Slot, Board } from '../components/board.js';
 import { Component, IntCirc } from '../components/comp.js';
+import { LineDraw } from '../components/linedraw.js';
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { useDroppable, useDraggable, DndContext} from '@dnd-kit/core';
-import {CSS} from '@dnd-kit/utilities';
+import { DndContext} from '@dnd-kit/core';
+import { SlotDroppable, CompDraggable } from '../components/dragndrop.js';
 import './index-styles.css';
 
-function SlotDroppable(props){
-    const {setNodeRef} = useDroppable({
-        id: props.id,
-    });
-    return(
-        <div ref={setNodeRef} style={props.style} className='slot'>
-            {props.children}
-        </div>
-    );
-}
 
-function CompDraggable(props) {
-    const {attributes, listeners, setNodeRef, transform} = useDraggable({
-        id: props.id,
-
-    });
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        position: 'absolute'
-    };
-    
-    return (
-        <div className={props.className} ref={(node) => {
-            setNodeRef(node);
-            props.onSetRef(props.id, node); // The Index function also needs the ref for drawing lines
-        }} style={style} {...listeners} {...attributes}></div>
-    );
-}
 
 // Clickable DOM elements to represent cutting the copper strips, severing the row connection
 const StripCut = ({ height })=>{
@@ -46,6 +20,7 @@ const StripCut = ({ height })=>{
 };
 
 function Index(){
+
     //Board settings, with default values
     const [rows, setRows] = useState(10);
     const [cols, setCols] = useState(20);
@@ -53,25 +28,27 @@ function Index(){
     const [board, setBoard] = useState(new Board(cols, rows));
     const boardRef = useRef(0);
 
-    
-
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-    const capture = useRef({}); //Avoid rerenders when acquiring ref
 
-    //Dragging terminal logic
+    /***************************/
+    /* ---- DRAG HANDLERS ---- */
+    /***************************/
+    
+    //Rendering and updating for slot placements
     function handleDragEnd(event) {
+
+        //Component is 'active', slot is 'over'. 
         const {over, active} = event;
         
-        //Component is always in event as active. Storing some important values as const
+        //Storing some important values as const
         const compInd= parseInt(active.id.substr(1));
         const oldSlot = active.id[0] === 'i' ? comps[compInd].in : comps[compInd].out; 
+        const ind = parseInt(over.id.substr(1));
 
         //Drop into slot
         if(over){
-            //Annoying to write, keep it as a const
-            const ind = parseInt(over.id.substr(1));
 
             //Set new slot
             setSlots((prev) => ({
@@ -81,7 +58,7 @@ function Index(){
                 ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
             }));
 
-            //Backwards reference, for removing from old space
+            //Backwards reference, so component can be removed from old space
             let prevComp = comps[compInd];
             setComps((prev) => ({
                 ...prev,
@@ -89,28 +66,22 @@ function Index(){
             }));
         }
 
-        //If no slot, reset terminal to homebase
+        //TODO: If no slot, reset terminal to homebase
         else{
             console.log('null');
         }
     };
 
-    //Keeping track of refs
-    const handleSetRef = (id, node) => {
-        if(node){
-            const rect = node.getBoundingClientRect()
-            capture.current[id] = rect;
-            console.log("capture keys: "+Object.keys(capture.current));
-            console.log('refState');
-        }
-    };
-    
+    /*********************************************/
+    /* ---- DRAG N DROP COMPONENT RENDERING ---- */
+    /*********************************************/
+
     //Render functions for draggables
     const draggableOne = (id) => (
-        <CompDraggable id={id} className='wire_1' onSetRef={handleSetRef}/>
+        <CompDraggable id={id} className='wire_1'/>
     );
     const draggableTwo = (id) => (
-        <CompDraggable id={id} className='wire_2' onSetRef={handleSetRef}/>
+        <CompDraggable id={id} className='wire_2'/>
     );
     //Special const function for rendering on droppables with minimal writing.
     const dragRender = (id) => (
@@ -133,9 +104,16 @@ function Index(){
         }));
     };
 
+    /*******************/
+    /* ---- HOOKS ---- */
+    /*******************/
+
+    //Had some weird issue with slots state as an Object, force it to an Object synchronously on render
     useLayoutEffect(() => {
         setSlots({});
     }, []);
+    
+    //On any render, calculate the height of rows
     useEffect(()=>{
         setRowHeight(boardRef.current.clientHeight / rows);
     });
@@ -145,11 +123,16 @@ function Index(){
         console.log("slots");
         console.log(slots);
     }, [slots]);
+    
     //Reading comps on update, for debugging
     useEffect(()=>{
         console.log("components");
         console.log(comps);
     }, [comps])
+
+    /********************/
+    /* ---- RENDER ---- */
+    /********************/
 
     return(
         <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
@@ -182,9 +165,13 @@ function Index(){
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? draggableOne('i' + id) : null}
                         <br/> 
-                        {comps[id].out === null ? draggableTwo('o' + id) : null}
-                        {}
+                        {comps[id].out === null? draggableTwo('o' + id) : null}
                     </div>))}
+                <svg>
+                    {Object.keys(comps).map((id) => (
+                        <LineDraw key={id} id={id} term1={comps[id].in === null ? 'i' + id : 's' + comps[id].in} term2={comps[id].out === null ? 'o' + id : 's' + comps[id].out}/>
+                    ))}
+                </svg>
                 </div>
         </DndContext>
     );
