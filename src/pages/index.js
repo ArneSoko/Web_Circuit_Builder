@@ -31,6 +31,7 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
+    const [numComps, setNumComps] = useState(0);
 
     /***************************/
     /* ---- DRAG HANDLERS ---- */
@@ -109,13 +110,38 @@ function Index(){
 
     //Create new components, append them to the components list, and render their terminals
     function newComp(){
-        const intArr = Object.keys(comps).map((id) => (parseInt(id)));
         setComps((prev) => ({
             ...prev,
-            //In case one component is deleted, just keep tracking elements as the highest number + 1
-            [intArr.length ? Math.max(...intArr)+1 : 0] : new Component()
+            [numComps] : new Component()
         }));
+        setNumComps(numComps + 1);
     };
+
+    function delComp(id){
+        
+        //Acquire component terminals
+        const termIn = comps[id].in;
+        const termOut = comps[id].out;
+        
+        //Clear slots containing the terminals
+        if(termIn){
+            setSlots((prev) => ({
+            ...prev,
+            [termIn] : null
+        }));};
+        if(termOut){
+            setSlots((prev) => ({
+            ...prev,
+            [termOut] : null
+        }));};
+
+        //Remove component from comps, by deleting the attribute
+        let newComps = comps;
+        delete newComps[id];
+
+        setComps(newComps);
+        console.log(newComps);
+    }
 
     /*******************/
     /* ---- HOOKS ---- */
@@ -178,7 +204,8 @@ function Index(){
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? dragRender('i' + id) : null}
                         <br/> 
-                        {comps[id].out === null? dragRender('o' + id) : null}
+                        {comps[id].out === null? dragRender('o' + id) : null}<br/>
+                        <button onClick={() => delComp(id)} className='delButton'>DELETE</button>
                     </div>))}
                 <svg>
                     {Object.keys(comps).map((id) => (
