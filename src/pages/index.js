@@ -74,13 +74,10 @@ function Index(){
             //Only worth doing if the component was plugged into a slot
             if(oldSlot !== null){
 
-                //Set old slot to null
-                setSlots((prev) => ({
-                    ...prev,
-                    [oldSlot] : null
-                }));
-
-                //Resetting the component terminal to null
+                //Delete old slot data
+                let newSlots = {...slots};
+                delete newSlots[oldSlot];
+                setSlots(newSlots);
                 
                 //Collect the old component data
                 let prevComp = comps[compInd]
