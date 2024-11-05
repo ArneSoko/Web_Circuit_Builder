@@ -136,7 +136,7 @@ function Index(){
         }));};
 
         //Remove component from comps, by deleting the attribute
-        let newComps = comps;
+        let newComps = {...comps};
         delete newComps[id];
 
         setComps(newComps);
