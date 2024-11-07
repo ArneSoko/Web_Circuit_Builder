@@ -37,6 +37,13 @@ function Index(){
     /***************************/
     /* ---- DRAG HANDLERS ---- */
     /***************************/
+
+    //Rendering line movements
+    function handleDragMove(event){
+        const {active} = event;
+        const lineId = parseInt(active.id.substr(1));
+        lines.current[lineId].update();
+    }
     
     //Rendering and updating for slot placements
     function handleDragEnd(event) {
@@ -53,23 +60,28 @@ function Index(){
             //Would have put this with the rest of the const values, but over can be null
             const ind = parseInt(over.id.substr(1));
 
+            //Collect a copy of slots for modification
+            let newSlots = {...slots};
+
+            //Check that oldSlot is not null and is not the same slot, then delete the slot
+            if(oldSlot !== null && oldSlot !== ind){
+                delete newSlots[oldSlot];
+            }
+
             //Set new slot
-            setSlots((prev) => ({
-                ...prev,
-                [ind]: active.id,
-                //Check that oldSlot is not null and is not the same slot, then set the slut to null
-                ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
-            }));
+            newSlots[ind] = active.id;
+            setSlots(newSlots);
 
             //Backwards reference, so component can be removed from old space
             let prevComp = comps[compInd];
+
             setComps((prev) => ({
                 ...prev,
                 [compInd] : active.id[0] === 'i' ? new Component(ind,prevComp.out) : new Component(prevComp.in, ind)
             }));
         }
 
-        //TODO: If no slot, reset terminal to homebase
+        //If no slot, reset terminal to homebase
         else{
 
             //Only worth doing if the component was plugged into a slot
@@ -89,6 +101,9 @@ function Index(){
                     [compInd] : active.id[0] === 'i' ? new Component(null, prevComp.out) : new Component(prevComp.in, null)
                 }));
         }}
+
+        //TODO: update lines on drop from null-to-null
+        lines.current[compInd].update();
     };
 
     /*********************************************/
@@ -193,7 +208,7 @@ function Index(){
     /********************/
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragMove={updateLines} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>

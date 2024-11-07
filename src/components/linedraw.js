@@ -4,7 +4,6 @@ const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id}, ref) => {
     const elem1 = term1;
     const elem2 = term2;
     const [coords, setCoords] = useState({x1: 0, x2: 0, y1: 0, y2: 0});
-    const compHome = document.getElementById('ch'+id);
 
     const updateCoords = () => {
       const element1 = document.getElementById(elem1);
