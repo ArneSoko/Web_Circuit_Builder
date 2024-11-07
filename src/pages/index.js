@@ -32,6 +32,7 @@ function Index(){
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
     const [numComps, setNumComps] = useState(0);
+    const lines = useRef({});
 
     /***************************/
     /* ---- DRAG HANDLERS ---- */
@@ -114,6 +115,21 @@ function Index(){
         setNumComps(numComps + 1);
     };
 
+    //Set lines in a single object ref, so positions can be updated as necessary (ie: on delete)
+    function setLineRef(el, key){
+        if (el){
+            lines.current[key] = el;
+        }
+    };
+
+    //Update all line positions, necessary after deletion
+    function updateLines(){
+        let keys = Object.keys(lines.current)
+        for(let i = 0; i < keys.length; i++){
+            lines.current[keys[i]].update();
+        }
+    }
+
     function delComp(id){
         
         //Acquire component terminals
@@ -132,12 +148,15 @@ function Index(){
             [termOut] : null
         }));};
 
-        //Remove component from comps, by deleting the attribute
+        //Remove component from comps, by deleting the attribute from a copied set
         let newComps = {...comps};
         delete newComps[id];
 
+        //Delete the line ref
+        delete lines.current[id];
+
+        //Set the new comps, forcing a rerender
         setComps(newComps);
-        console.log(newComps);
     }
 
     /*******************/
@@ -164,6 +183,9 @@ function Index(){
     useEffect(()=>{
         console.log("components");
         console.log(comps);
+
+        //Adding this here and in onDragMove ended up working better.
+        updateLines();
     }, [comps])
 
     /********************/
@@ -171,7 +193,7 @@ function Index(){
     /********************/
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragMove={updateLines} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -180,7 +202,7 @@ function Index(){
                 <label htmlFor='col_in'>Slots per row: </label>
                 <input type='number' id='col_in' name='col_in' defaultValue={cols} onChange={e => setCols(parseInt(e.target.value))} min={1} max={40}/><br/>
                 <input type='button' value='Add component' onClick={e => newComp()}/>
-                
+                <button onClick={updateLines}>Update Lines</button>
             </div>
             <div className='brd' ref={boardRef}>
                 {board.rows.map((row, rindex) => (
@@ -206,7 +228,7 @@ function Index(){
                     </div>))}
                 <svg>
                     {Object.keys(comps).map((id) => (
-                        <LineDraw key={id} id={id} term1={comps[id].in === null ? 'i' + id : 's' + comps[id].in} term2={comps[id].out === null ? 'o' + id : 's' + comps[id].out}/>
+                        <LineDraw key={id} id={id} ref={(el) => setLineRef(el, id)} term1={'i' + id} term2={'o' + id}/>
                     ))}
                 </svg>
                 </div>
