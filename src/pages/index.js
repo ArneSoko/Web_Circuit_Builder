@@ -197,12 +197,12 @@ function Index(){
         console.log(slots);
     }, [slots]);
     
-    //Reading comps on update, for debugging
     useEffect(()=>{
+        //Reading comps on update, for debugging
         console.log("components");
         console.log(comps);
 
-        //Adding this here and in onDragMove ended up working better.
+        //Adding this here and in drag handlers ended up working better than changing the line's pointed element.
         updateLines();
     }, [comps])
 
@@ -220,7 +220,6 @@ function Index(){
                 <label htmlFor='col_in'>Slots per row: </label>
                 <input type='number' id='col_in' name='col_in' defaultValue={cols} onChange={e => setCols(parseInt(e.target.value))} min={1} max={40}/><br/>
                 <input type='button' value='Add component' onClick={e => newComp()}/>
-                <button onClick={updateLines}>Update Lines</button>
             </div>
             <div className='brd' ref={boardRef}>
                 {board.rows.map((row, rindex) => (
