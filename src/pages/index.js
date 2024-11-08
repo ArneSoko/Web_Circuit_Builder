@@ -31,10 +31,19 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
+    const [numComps, setNumComps] = useState(0);
+    const lines = useRef({});
 
     /***************************/
     /* ---- DRAG HANDLERS ---- */
     /***************************/
+
+    //Rendering line movements
+    function handleDragMove(event){
+        const {active} = event;
+        const lineId = parseInt(active.id.substr(1));
+        lines.current[lineId].update();
+    }
     
     //Rendering and updating for slot placements
     function handleDragEnd(event) {
@@ -51,35 +60,37 @@ function Index(){
             //Would have put this with the rest of the const values, but over can be null
             const ind = parseInt(over.id.substr(1));
 
+            //Collect a copy of slots for modification
+            let newSlots = {...slots};
+
+            //Check that oldSlot is not null and is not the same slot, then delete the slot
+            if(oldSlot !== null && oldSlot !== ind){
+                delete newSlots[oldSlot];
+            }
+
             //Set new slot
-            setSlots((prev) => ({
-                ...prev,
-                [ind]: active.id,
-                //Check that oldSlot is not null and is not the same slot, then set the slut to null
-                ...(oldSlot && oldSlot !== ind && {[oldSlot] : null})
-            }));
+            newSlots[ind] = active.id;
+            setSlots(newSlots);
 
             //Backwards reference, so component can be removed from old space
             let prevComp = comps[compInd];
+
             setComps((prev) => ({
                 ...prev,
                 [compInd] : active.id[0] === 'i' ? new Component(ind,prevComp.out) : new Component(prevComp.in, ind)
             }));
         }
 
-        //TODO: If no slot, reset terminal to homebase
+        //If no slot, reset terminal to homebase
         else{
 
-            //Only worth doing if the component was plugged into a slot
+            //If the component was plugged into a slot, delete the associated data fields
             if(oldSlot !== null){
 
-                //Set old slot to null
-                setSlots((prev) => ({
-                    ...prev,
-                    [oldSlot] : null
-                }));
-
-                //Resetting the component terminal to null
+                //Delete old slot data
+                let newSlots = {...slots};
+                delete newSlots[oldSlot];
+                setSlots(newSlots);
                 
                 //Collect the old component data
                 let prevComp = comps[compInd]
@@ -89,7 +100,13 @@ function Index(){
                     ...prev,
                     [compInd] : active.id[0] === 'i' ? new Component(null, prevComp.out) : new Component(prevComp.in, null)
                 }));
-        }}
+            }
+        }
+
+        //One millisecond delay fixes an issue where the line terminal wouldn't snap back, due to reading the position before the snapping occurred
+        setTimeout(()=>{
+            lines.current[compInd].update();
+        }, 1);
     };
 
     /*********************************************/
@@ -109,13 +126,56 @@ function Index(){
 
     //Create new components, append them to the components list, and render their terminals
     function newComp(){
-        const intArr = Object.keys(comps).map((id) => (parseInt(id)));
         setComps((prev) => ({
             ...prev,
-            //In case one component is deleted, just keep tracking elements as the highest number + 1
-            [intArr.length ? Math.max(...intArr)+1 : 0] : new Component()
+            [numComps] : new Component()
         }));
+        setNumComps(numComps + 1);
     };
+
+    //Set lines in a single object ref, so positions can be updated as necessary (ie: on delete)
+    function setLineRef(el, key){
+        if (el){
+            lines.current[key] = el;
+        }
+    };
+
+    //Update all line positions, necessary after deletion
+    function updateLines(){
+        let keys = Object.keys(lines.current)
+        for(let i = 0; i < keys.length; i++){
+            lines.current[keys[i]].update();
+        }
+    }
+
+    function delComp(id){
+        
+        //Acquire component terminals
+        const termIn = comps[id].in;
+        const termOut = comps[id].out;
+        
+        //Clear slots containing the terminals
+        if(termIn){
+            setSlots((prev) => ({
+            ...prev,
+            [termIn] : null
+        }));};
+        if(termOut){
+            setSlots((prev) => ({
+            ...prev,
+            [termOut] : null
+        }));};
+
+        //Remove component from comps, by deleting the attribute from a copied set
+        let newComps = {...comps};
+        delete newComps[id];
+
+        //Delete the line ref
+        delete lines.current[id];
+
+        //Set the new comps, forcing a rerender
+        setComps(newComps);
+    }
 
     /*******************/
     /* ---- HOOKS ---- */
@@ -137,10 +197,13 @@ function Index(){
         console.log(slots);
     }, [slots]);
     
-    //Reading comps on update, for debugging
     useEffect(()=>{
+        //Reading comps on update, for debugging
         console.log("components");
         console.log(comps);
+
+        //Adding this here and in drag handlers ended up working better than changing the line's pointed element.
+        updateLines();
     }, [comps])
 
     /********************/
@@ -148,7 +211,7 @@ function Index(){
     /********************/
 
     return(
-        <DndContext style={{position: 'absolute'}} onDragEnd={handleDragEnd}>
+        <DndContext style={{position: 'absolute'}} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
             <div className='bkgrnd'></div>
             <div className='inputs'>
                 <label htmlFor='row_in'>Rows: </label>
@@ -157,7 +220,6 @@ function Index(){
                 <label htmlFor='col_in'>Slots per row: </label>
                 <input type='number' id='col_in' name='col_in' defaultValue={cols} onChange={e => setCols(parseInt(e.target.value))} min={1} max={40}/><br/>
                 <input type='button' value='Add component' onClick={e => newComp()}/>
-                
             </div>
             <div className='brd' ref={boardRef}>
                 {board.rows.map((row, rindex) => (
@@ -178,11 +240,12 @@ function Index(){
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
                         {comps[id].in === null ? dragRender('i' + id) : null}
                         <br/> 
-                        {comps[id].out === null? dragRender('o' + id) : null}
+                        {comps[id].out === null? dragRender('o' + id) : null}<br/>
+                        <button onClick={() => delComp(id)} className='delButton'>DELETE</button>
                     </div>))}
                 <svg>
                     {Object.keys(comps).map((id) => (
-                        <LineDraw key={id} id={id} term1={comps[id].in === null ? 'i' + id : 's' + comps[id].in} term2={comps[id].out === null ? 'o' + id : 's' + comps[id].out}/>
+                        <LineDraw key={id} id={id} ref={(el) => setLineRef(el, id)} term1={'i' + id} term2={'o' + id}/>
                     ))}
                 </svg>
                 </div>

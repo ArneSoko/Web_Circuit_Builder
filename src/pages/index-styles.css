@@ -67,6 +67,11 @@
     border-color: red;
     border-width: 1px 2px;
 }
+
+.delButton{
+    color: red;
+}
+
 svg{
     position:fixed;
     top: 0;
