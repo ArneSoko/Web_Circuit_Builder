@@ -84,7 +84,7 @@ function Index(){
         //If no slot, reset terminal to homebase
         else{
 
-            //Only worth doing if the component was plugged into a slot
+            //If the component was plugged into a slot, delete the associated data fields
             if(oldSlot !== null){
 
                 //Delete old slot data
@@ -100,10 +100,13 @@ function Index(){
                     ...prev,
                     [compInd] : active.id[0] === 'i' ? new Component(null, prevComp.out) : new Component(prevComp.in, null)
                 }));
-        }}
+            }
+        }
 
-        //TODO: update lines on drop from null-to-null
-        lines.current[compInd].update();
+        //One millisecond delay fixes an issue where the line terminal wouldn't snap back, due to reading the position before the snapping occurred
+        setTimeout(()=>{
+            lines.current[compInd].update();
+        }, 1);
     };
 
     /*********************************************/

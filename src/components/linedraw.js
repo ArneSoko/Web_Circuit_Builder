@@ -5,6 +5,8 @@ const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id}, ref) => {
     const elem2 = term2;
     const [coords, setCoords] = useState({x1: 0, x2: 0, y1: 0, y2: 0});
 
+
+    //Update the terminal coordinates to the elements
     const updateCoords = () => {
       const element1 = document.getElementById(elem1);
       const element2 = document.getElementById(elem2);
@@ -21,6 +23,7 @@ const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id}, ref) => {
         });
       }
     }
+
     useEffect(() => {
       
       // Initial calculation
