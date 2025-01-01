@@ -1,6 +1,6 @@
 import { useState, useEffect, useImperativeHandle, forwardRef } from "react";
 
-const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id}, ref) => {
+const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id, name='wire', type='wire'}, ref) => {
     const elem1 = term1;
     const elem2 = term2;
     const [coords, setCoords] = useState({x1: 0, x2: 0, y1: 0, y2: 0});
@@ -44,15 +44,15 @@ const LineDraw = forwardRef(({id, term1 = 'i'+id, term2 = 'o'+id}, ref) => {
     }));
 
 
-  return (
+  return (<>
     <line id = {'l'+id}
     x1={coords.x1}
     y1={coords.y1}
     x2={coords.x2}
     y2={coords.y2}
     stroke="gray"
-    strokeWidth="2"
-    />
-  );
+    strokeWidth="2"/>
+    <text y={(coords.y1+coords.y2)/2} x={(coords.x1+coords.x2)/2} fill="red">{name}</text>
+  </>);
 });
 export { LineDraw };

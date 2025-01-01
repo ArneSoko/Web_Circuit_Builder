@@ -31,8 +31,17 @@ function Index(){
     //Drag-and-drop logic
     const [slots, setSlots] = useState({});
     const [comps, setComps] = useState({});
-    const [numComps, setNumComps] = useState(0);
     const lines = useRef({});
+
+    //Keeping track of the different types of components. 
+    //Types are, in order: wires, resistors, capacitors, inductors, diodes, intergrated circuits, and transistors
+    const [numWires, setNumWires] = useState(0);
+    const [numResists, setNumResists] = useState(0);
+    const [numCaps, setNumCaps] = useState(0);
+    const [numInds, setNumInds] = useState(0);
+    const [numDiodes, setNumDiodes] = useState(0);
+    const [numCircs, setNumCircs] = useState(0);
+    const [numTrans, setNumTrans] = useState(0); 
 
     /***************************/
     /* ---- DRAG HANDLERS ---- */
@@ -114,8 +123,8 @@ function Index(){
     /*********************************************/
 
     //Special const function for rendering on droppables with minimal writing.
-    const dragRender = (id) => (
-        <CompDraggable id={id} className={id[0] === 'i' ? 'wire_1' : 'wire_2'}/>
+    const dragRender = (id) =>(
+        <CompDraggable id={id} className={'term'}/>
     );
 
     //Set a new board size
@@ -126,11 +135,15 @@ function Index(){
 
     //Create new components, append them to the components list, and render their terminals
     function newComp(){
+        let numComps=0;
+        //I was planning to do Object.keys().length, but this actually has less operations and uses less memory.
+        for(let k in comps) {
+            numComps++;
+        }
         setComps((prev) => ({
             ...prev,
             [numComps] : new Component()
         }));
-        setNumComps(numComps + 1);
     };
 
     //Set lines in a single object ref, so positions can be updated as necessary (ie: on delete)
@@ -238,16 +251,17 @@ function Index(){
                 <div className='homebase'>
                 {Object.keys(comps).map((id) => (
                     <div key={id} className='compHome' id={'ch'+id}> <p style={{color: 'white'}}>{id}</p>
-                        {comps[id].in === null ? dragRender('i' + id) : null}
-                        <br/> 
+                        {comps[id].in === null ? dragRender('i' + id) : null}<br/> 
                         {comps[id].out === null? dragRender('o' + id) : null}<br/>
                         <button onClick={() => delComp(id)} className='delButton'>DELETE</button>
                     </div>))}
-                <svg>
-                    {Object.keys(comps).map((id) => (
-                        <LineDraw key={id} id={id} ref={(el) => setLineRef(el, id)} term1={'i' + id} term2={'o' + id}/>
-                    ))}
-                </svg>
+                    <svg>
+                        {Object.keys(comps).map((id) => (
+                            <>
+                            <LineDraw key={id} id={id} type={comps[id].type} name={comps[id].name} ref={(el) => setLineRef(el, id)} term1={'i' + id} term2={'o' + id}/>
+                            </>
+                        ))}
+                    </svg>
                 </div>
         </DndContext>
     );
